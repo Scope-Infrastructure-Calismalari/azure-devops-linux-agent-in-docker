@@ -1,0 +1,93 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: scope-azure-devops-linux-agent-sts
+  namespace: scope-azuredevops-linuxagents
+spec:
+  serviceName: scope-azure-devops-linux-agent-svc
+  replicas: 1
+  selector:
+    matchLabels:
+      app: scope-azure-devops-linux-agent-sts
+  updateStrategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: scope-azure-devops-linux-agent-sts
+    spec:
+      containers:
+      - args:
+        - NEXUSSERVICEIPADRR=$(ping -q -W1 -c1 scope-nexus-clusterstorage-nexus-repository-manager-80.scope-nexus.svc.cluster.local
+          | head -n1 | cut -d "(" -f2 | cut -d ")" -f1) && echo "${NEXUSSERVICEIPADRR}
+          nexus.scope.kkuhtm.aynet.com.tr" >> /etc/hosts && SONARQUBESERVICEIPADRR=$(ping
+          -q -W1 -c1 scope-sonarqube-sonarqube-80.scope-sonarqube.svc.cluster.local
+          | head -n1 | cut -d "(" -f2 | cut -d ")" -f1) && echo "${SONARQUBESERVICEIPADRR}
+          sonarqube.scope.kkuhtm.aynet.com.tr" >> /etc/hosts && source "/root/.nvm/nvm.sh" 
+          && nvm use "$NODE_VERSION" && nvm alias default "$NODE_VERSION" && /azp/agent/start.pat.sh
+        command:
+        - /bin/bash
+        - -c
+        env:
+        - name: JAVA_HOME
+          value: /usr/lib/jvm/java-17-openjdk-amd64/
+        - name: M2_HOME
+          value: /usr/share/maven/
+        - name: NODE_VERSION
+          value: "16"          
+        - name: AZP_POOL
+          value: SCOPE-CICD
+        - name: AZP_TOKEN
+          valueFrom:
+            secretKeyRef:
+              key: token
+              name: agent-token-kkeskin
+        - name: AZP_URL
+          value: https://aytfs01.aynet.com.tr/KKUHTMCollection/
+        image: scopeinfra/azuredevops-linux-agent-auth-pat:jdk17-jdk13-jdk11-jdk8-mvn3.8-nodejs16-nodejs14-nodejs12-nodejs10-py3-go1.17-dockercli-buildah-sonarscanner4.6-azp2.181.2
+        imagePullPolicy: IfNotPresent
+        name: selfhosted-agents
+        ports:
+        - containerPort: 80
+          protocol: TCP
+        resources:
+          limits:
+            cpu: "2"
+            memory: 4Gi
+          requests:
+            cpu: "1"
+            memory: 2Gi
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /var/run/docker.sock
+          name: docker-graph-storage
+        - mountPath: /root/.m2/settings.xml
+          name: scope-maven-settings-volume
+          subPath: settings.xml
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+      volumes:
+      - hostPath:
+          path: /var/run/docker.sock
+          type: ""
+        name: docker-graph-storage
+      - configMap:
+          defaultMode: 420
+          name: scope-maven-settings
+        name: scope-maven-settings-volume
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: scope-azure-devops-linux-agent-svc
+spec:
+  clusterIP: None
+  selector:
+    app: scope-azure-devops-linux-agent-sts
+  ports:
+    - protocol: TCP
+      port: 80
