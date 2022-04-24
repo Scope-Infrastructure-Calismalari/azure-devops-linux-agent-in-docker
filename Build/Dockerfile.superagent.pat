@@ -28,7 +28,8 @@ RUN apt-get update \
         vim \
         git \
         expect \
-        dos2unix
+        dos2unix \
+        pkg-config
 
 # GCC and CPP Installations
 RUN apt-get install -y --no-install-recommends \
@@ -65,13 +66,6 @@ RUN export GOPATH=/azp/go/workspace
 ENV GOPATH=/azp/go/workspace
 RUN rm -rf /azp/go/go${GOVERSION}.linux-amd64.tar.gz
 
-# NodeJS 16 LTS Installation
-ARG NODEJSVERSION=16
-WORKDIR /azp/nodejs
-RUN curl -fsSL https://deb.nodesource.com/setup_${NODEJSVERSION}.x | bash -
-RUN apt-get update
-RUN apt-get install -y nodejs
-
 # Java JDK 17 Installation
 RUN apt-get install -y --no-install-recommends openjdk-17-jdk
 
@@ -85,19 +79,6 @@ RUN apt-get install -y --no-install-recommends openjdk-8-jdk
 #RUN export JAVA_HOME=$(readlink -f /usr/bin/javac | sed "s:/bin/javac::")
 ENV JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
 #RUN export PATH=$PATH:$JAVA_HOME/bin
-
-# Maven 3.8.4 Installation
-ARG MAVENVERSION=3.8.4
-RUN apt-get install -y --no-install-recommends maven
-WORKDIR /azp/maven
-RUN wget https://dlcdn.apache.org/maven/maven-3/${MAVENVERSION}/binaries/apache-maven-${MAVENVERSION}-bin.tar.gz
-RUN tar -xvzf apache-maven-${MAVENVERSION}-bin.tar.gz \
-  && mv apache-maven-${MAVENVERSION} maven \
-  && mv /usr/share/maven /usr/share/maven-old \ 
-  && mv maven /usr/share/
-RUN export M2_HOME=/usr/share/maven
-ENV M2_HOME=/usr/share/maven
-RUN rm -rf /azp/maven/apache-maven-${MAVENVERSION}-bin.tar.gz
 
 # SonarScanner 4.6.2.2472 Installation
 ARG SONARSCANNERVERSION=4.6.2.2472
@@ -123,6 +104,62 @@ RUN bash -c "echo 'deb http://download.opensuse.org/repositories/devel:/kubic:/l
 RUN wget -nv https://download.opensuse.org/repositories/devel:kubic:libcontainers:stable/xUbuntu_18.04/Release.key -O Release.key
 RUN apt-key add - < Release.key
 RUN apt-get update -qq && apt-get -qq -y install buildah
+
+# Install Helm
+RUN curl https://baltocdn.com/helm/signing.asc | apt-key add -
+RUN apt-get install apt-transport-https --yes
+RUN echo "deb https://baltocdn.com/helm/stable/debian/ all main" | tee /etc/apt/sources.list.d/helm-stable-debian.list
+RUN apt-get update
+RUN apt-get install helm
+
+# NodeJS 16 LTS Installation
+ARG NODEJSVERSION=16
+WORKDIR /azp/nodejs
+RUN curl -fsSL https://deb.nodesource.com/setup_${NODEJSVERSION}.x | bash -
+RUN apt-get update
+RUN apt-get install -y nodejs
+
+# To install Yarn (for NodeJS 16) and update npm
+RUN npm install yarn -g
+RUN npm install -g npm@8.7.0
+
+# NodeJS 12 Installation
+ARG NODEJSVERSION=16
+WORKDIR /azp/nodejs
+RUN curl -fsSL https://deb.nodesource.com/setup_${NODEJSVERSION}.x | bash -
+RUN apt-get update
+RUN apt-get install -y nodejs
+
+# Install Node Version Manager (nvm)
+SHELL ["/bin/bash", "--login", "-i", "-c"]
+RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.35.2/install.sh | bash
+RUN chmod -R 777 /root/.nvm/;
+RUN bash /root/.nvm/install.sh;
+RUN bash -i -c 'nvm ls-remote';
+RUN export NVM_DIR="$HOME/.nvm";
+RUN echo "[[ -s $HOME/.nvm/nvm.sh ]] && . $HOME/.nvm/nvm.sh" >> $HOME/.bashrc;
+
+# To install Yarn (for NodeJS 12)
+RUN nvm install 12
+RUN nvm use 12
+RUN npm install yarn -g
+
+# To make agent's default NodeJS version as 16
+RUN nvm install 16
+RUN nvm use 16
+
+# Maven 3.8.5 Installation
+ARG MAVENVERSION=3.8.5
+RUN apt-get install -y --no-install-recommends maven
+WORKDIR /azp/maven
+RUN wget https://dlcdn.apache.org/maven/maven-3/${MAVENVERSION}/binaries/apache-maven-${MAVENVERSION}-bin.tar.gz
+RUN tar -xvzf apache-maven-${MAVENVERSION}-bin.tar.gz \
+  && mv apache-maven-${MAVENVERSION} maven \
+  && mv /usr/share/maven /usr/share/maven-old \ 
+  && mv maven /usr/share/
+RUN export M2_HOME=/usr/share/maven
+ENV M2_HOME=/usr/share/maven
+RUN rm -rf /azp/maven/apache-maven-${MAVENVERSION}-bin.tar.gz
 
 # Install Azure DevOps Required Dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
