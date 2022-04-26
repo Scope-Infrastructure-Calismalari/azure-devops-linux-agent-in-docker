@@ -89,13 +89,10 @@ RUN export PATH=${PATH}:/azp/sonarscanner/sonar-scanner-${SONARSCANNERVERSION}-l
 RUN rm -rf /azp/sonarscanner/sonar-scanner-cli-${SONARSCANNERVERSION}-linux.zip
 
 # Install Docker CLI on Ubuntu
-# Add Docker’s official GPG key:
 RUN curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
-# Use the following command to set up the stable repository.
 RUN echo \
     "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \
     $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
-# Update the apt package index, and install the latest version of Docker Engine and containerd, or go to the next step to install a specific version:
 RUN apt-get update && apt-get install -y docker-ce-cli
 
 # Install buildah
@@ -112,42 +109,6 @@ RUN echo "deb https://baltocdn.com/helm/stable/debian/ all main" | tee /etc/apt/
 RUN apt-get update
 RUN apt-get install helm
 
-# NodeJS 16 LTS Installation
-ARG NODEJSVERSION=16
-WORKDIR /azp/nodejs
-RUN curl -fsSL https://deb.nodesource.com/setup_${NODEJSVERSION}.x | bash -
-RUN apt-get update
-RUN apt-get install -y nodejs
-
-# To install Yarn (for NodeJS 16) and update npm
-RUN npm install yarn -g
-RUN npm install -g npm@8.7.0
-
-# NodeJS 12 Installation
-ARG NODEJSVERSION=16
-WORKDIR /azp/nodejs
-RUN curl -fsSL https://deb.nodesource.com/setup_${NODEJSVERSION}.x | bash -
-RUN apt-get update
-RUN apt-get install -y nodejs
-
-# Install Node Version Manager (nvm)
-SHELL ["/bin/bash", "--login", "-i", "-c"]
-RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.35.2/install.sh | bash
-RUN chmod -R 777 /root/.nvm/;
-RUN bash /root/.nvm/install.sh;
-RUN bash -i -c 'nvm ls-remote';
-RUN export NVM_DIR="$HOME/.nvm";
-RUN echo "[[ -s $HOME/.nvm/nvm.sh ]] && . $HOME/.nvm/nvm.sh" >> $HOME/.bashrc;
-
-# To install Yarn (for NodeJS 12)
-RUN nvm install 12
-RUN nvm use 12
-RUN npm install yarn -g
-
-# To make agent's default NodeJS version as 16
-RUN nvm install 16
-RUN nvm use 16
-
 # Maven 3.8.5 Installation
 ARG MAVENVERSION=3.8.5
 RUN apt-get install -y --no-install-recommends maven
@@ -160,6 +121,36 @@ RUN tar -xvzf apache-maven-${MAVENVERSION}-bin.tar.gz \
 RUN export M2_HOME=/usr/share/maven
 ENV M2_HOME=/usr/share/maven
 RUN rm -rf /azp/maven/apache-maven-${MAVENVERSION}-bin.tar.gz
+
+# NodeJS 16 LTS Installation
+ARG NODEJSVERSION=16
+WORKDIR /azp/nodejs
+RUN curl -fsSL https://deb.nodesource.com/setup_${NODEJSVERSION}.x | bash -
+RUN apt-get update
+RUN apt-get install -y nodejs
+
+# To install Yarn (for NodeJS 16)
+RUN npm install yarn -g
+
+# NodeJS 14 Installation
+ARG NODEJSVERSION=14
+WORKDIR /azp/nodejs
+RUN curl -fsSL https://deb.nodesource.com/setup_${NODEJSVERSION}.x | bash -
+RUN apt-get update
+RUN apt-get install -y nodejs
+
+# To install Yarn (for NodeJS 14)
+RUN npm install yarn -g
+
+# NodeJS 12 Installation
+ARG NODEJSVERSION=12
+WORKDIR /azp/nodejs
+RUN curl -fsSL https://deb.nodesource.com/setup_${NODEJSVERSION}.x | bash -
+RUN apt-get update
+RUN apt-get install -y nodejs
+
+# To install Yarn (for NodeJS 12)
+RUN npm install yarn -g
 
 # Install Azure DevOps Required Dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
