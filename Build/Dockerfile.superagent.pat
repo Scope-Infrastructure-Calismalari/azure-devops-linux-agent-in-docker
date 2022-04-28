@@ -122,6 +122,22 @@ RUN export M2_HOME=/usr/share/maven
 ENV M2_HOME=/usr/share/maven
 RUN rm -rf /azp/maven/apache-maven-${MAVENVERSION}-bin.tar.gz
 
+# Node.js 10.x is no longer actively supported!
+
+# NodeJS 12 LTS Installation
+ARG NODEJSVERSION=12
+WORKDIR /azp/nodejs
+RUN curl -fsSL https://deb.nodesource.com/setup_${NODEJSVERSION}.x | bash -
+RUN apt-get update
+RUN apt-get install -y nodejs
+
+# NodeJS 14 LTS Installation
+ARG NODEJSVERSION=14
+WORKDIR /azp/nodejs
+RUN curl -fsSL https://deb.nodesource.com/setup_${NODEJSVERSION}.x | bash -
+RUN apt-get update
+RUN apt-get install -y nodejs
+
 # NodeJS 16 LTS Installation
 ARG NODEJSVERSION=16
 WORKDIR /azp/nodejs
@@ -129,28 +145,23 @@ RUN curl -fsSL https://deb.nodesource.com/setup_${NODEJSVERSION}.x | bash -
 RUN apt-get update
 RUN apt-get install -y nodejs
 
-# To install Yarn (for NodeJS 16)
-RUN npm install yarn -g
+RUN curl -sL https://raw.githubusercontent.com/nvm-sh/nvm/v0.35.0/install.sh -o install_nvm.sh
+RUN bash install_nvm.sh
 
-# NodeJS 14 Installation
-ARG NODEJSVERSION=14
-WORKDIR /azp/nodejs
-RUN curl -fsSL https://deb.nodesource.com/setup_${NODEJSVERSION}.x | bash -
-RUN apt-get update
-RUN apt-get install -y nodejs
+RUN echo "" >> ~/.bashrc
+RUN echo "export NVM_DIR=\"$HOME/.nvm\"" >> ~/.bashrc
+RUN echo "[ -s \"$NVM_DIR/nvm.sh\" ] && \. \"$NVM_DIR/nvm.sh\"  # This loads nvm" >> ~/.bashrc
+RUN echo "[ -s \"$NVM_DIR/bash_completion\" ] && \. \"$NVM_DIR/bash_completion\"  # This loads nvm bash_completion" >> ~/.bashrc
 
-# To install Yarn (for NodeJS 14)
-RUN npm install yarn -g
+RUN chmod +x $HOME/.nvm/nvm.sh
 
-# NodeJS 12 Installation
-ARG NODEJSVERSION=12
-WORKDIR /azp/nodejs
-RUN curl -fsSL https://deb.nodesource.com/setup_${NODEJSVERSION}.x | bash -
-RUN apt-get update
-RUN apt-get install -y nodejs
+RUN $HOME/.nvm/nvm.sh install 14
+RUN $HOME/.nvm/nvm.sh install 16
 
-# To install Yarn (for NodeJS 12)
-RUN npm install yarn -g
+## To install the Yarn package manager, run:
+RUN curl -sL https://dl.yarnpkg.com/debian/pubkey.gpg | gpg --dearmor | tee /usr/share/keyrings/yarnkey.gpg >/dev/null
+RUN echo "deb [signed-by=/usr/share/keyrings/yarnkey.gpg] https://dl.yarnpkg.com/debian stable main" | tee /etc/apt/sources.list.d/yarn.list
+RUN apt-get update && apt-get install yarn
 
 # Install Azure DevOps Required Dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -177,7 +188,6 @@ ENV AZP_WORK=_work
 
 # Azure DevOps Agent Installation
 ARG TARGETARCH=amd64
-#ARG AGENT_VERSION=2.153.1
 ARG AGENT_VERSION=2.181.2
 WORKDIR /azp/agent
 RUN if [ "$TARGETARCH" = "amd64" ]; then \
@@ -187,6 +197,9 @@ RUN if [ "$TARGETARCH" = "amd64" ]; then \
     fi; \
     curl -LsS "$AZP_AGENTPACKAGE_URL" | tar -xz
 RUN ./bin/installdependencies.sh
+
+# Last updates and upgrades
+RUN apt-get update && apt-get upgrade
 
 # Cleanup Ubuntu Environment
 RUN rm -rf /var/lib/apt/lists/*
