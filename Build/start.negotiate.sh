@@ -33,7 +33,7 @@ cleanup() {
     while true; do
       #./config.sh remove --unattended --auth PAT --token $(cat "$AZP_TOKEN_FILE") && break
       ./config.sh remove --unattended \
-          --sslskipcertvalidation \
+          --sslskipcertvalidation \  # TODO: Kalkabilir, kontrol et
           --auth negotiate \
           --username "$AZP_USERNAME" \
           --password "$AZP_PASSWORD" \
