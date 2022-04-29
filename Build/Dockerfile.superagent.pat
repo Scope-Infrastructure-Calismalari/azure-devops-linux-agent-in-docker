@@ -28,7 +28,8 @@ RUN apt-get update \
         vim \
         git \
         expect \
-        dos2unix
+        dos2unix \
+        pkg-config
 
 # GCC and CPP Installations
 RUN apt-get install -y --no-install-recommends \
@@ -87,6 +88,8 @@ ENV NODE_PATH $NVM_DIR/v$NODE_VERSION/lib/node_modules
 ENV PATH $NVM_DIR/versions/node/v$NODE_VERSION/bin:$PATH
 SHELL ["/bin/sh", "-c"]
 
+# Update before installing JDKs
+RUN apt update && apt upgrade
 
 # Java JDK 17 Installation
 RUN apt-get install -y --no-install-recommends openjdk-17-jdk
@@ -157,10 +160,16 @@ RUN curl -LsS https://aka.ms/InstallAzureCLIDeb | bash \
   && rm -rf /var/lib/apt/lists/*
 
 # Install Helm
-RUN  curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 \ 
-     && chmod 700 get_helm.sh \ 
-     && ./get_helm.sh
-     
+RUN curl https://baltocdn.com/helm/signing.asc | apt-key add -
+RUN apt-get install apt-transport-https --yes
+RUN echo "deb https://baltocdn.com/helm/stable/debian/ all main" | tee /etc/apt/sources.list.d/helm-stable-debian.list
+RUN apt-get update
+RUN apt-get install helm
+
+# Install Yarn package manager, run:
+RUN curl -sL https://dl.yarnpkg.com/debian/pubkey.gpg | gpg --dearmor | tee /usr/share/keyrings/yarnkey.gpg >/dev/null
+RUN echo "deb [signed-by=/usr/share/keyrings/yarnkey.gpg] https://dl.yarnpkg.com/debian stable main" | tee /etc/apt/sources.list.d/yarn.list
+RUN apt-get update && apt-get install yarn
      
 # Azure DevOps Agent Environment Variables
 ENV AGENT_ALLOW_RUNASROOT=1
@@ -171,8 +180,6 @@ ENV AZP_WORK=_work
 
 # Azure DevOps Agent Installation
 ARG TARGETARCH=amd64
-#ARG AGENT_VERSION=2.153.1
-#ARG AGENT_VERSION=2.170.1
 ARG AGENT_VERSION=2.181.2
 WORKDIR /azp/agent
 RUN if [ "$TARGETARCH" = "amd64" ]; then \
@@ -183,13 +190,16 @@ RUN if [ "$TARGETARCH" = "amd64" ]; then \
     curl -LsS "$AZP_AGENTPACKAGE_URL" | tar -xz
 RUN ./bin/installdependencies.sh
 
+# Last updates and upgrades
+RUN apt-get update && apt-get upgrade
+
 # Cleanup Ubuntu Environment
 RUN rm -rf /var/lib/apt/lists/*
 RUN apt-get autoremove -y && apt-get autoclean -y && apt-get clean -y
 
 # Azure DevOps Agent Starting
 WORKDIR /azp/agent
-COPY ./start.pat.sh .
+COPY ./Build/start.pat.sh .
 RUN chmod +x start.pat.sh
 
 ENTRYPOINT [ "/azp/agent/start.pat.sh" ]
