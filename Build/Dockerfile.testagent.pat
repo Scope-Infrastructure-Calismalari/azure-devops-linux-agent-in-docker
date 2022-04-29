@@ -42,7 +42,6 @@ ENV AZP_WORK=_work
 
 # Azure DevOps Agent Installation
 ARG TARGETARCH=amd64
-#ARG AGENT_VERSION=2.153.1
 ARG AGENT_VERSION=2.181.2
 WORKDIR /azp/agent
 RUN if [ "$TARGETARCH" = "amd64" ]; then \
