@@ -107,8 +107,8 @@ RUN apt-get install -y --no-install-recommends openjdk-8-jdk
 ENV JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
 #RUN export PATH=$PATH:$JAVA_HOME/bin
 
-# Maven 3.8.4 Installation
-ARG MAVENVERSION=3.8.5
+# Maven 3.8.6 Installation
+ARG MAVENVERSION=3.8.6
 RUN apt-get install -y --no-install-recommends maven
 WORKDIR /azp/maven
 RUN wget https://dlcdn.apache.org/maven/maven-3/${MAVENVERSION}/binaries/apache-maven-${MAVENVERSION}-bin.tar.gz
