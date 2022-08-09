@@ -48,11 +48,13 @@ RUN apt-get install -y --no-install-recommends \
         python3 \
         python3-dev \
         python3-pip \
+        python3-setuptools \
         virtualenv \
         libssl-dev \
         libffi-dev 
 
 # Python3 Flask Installation
+RUN pip3 install -U pip setuptools wheel
 RUN pip3 install flask 
 
 # Go 1.17.6 Installation
@@ -170,7 +172,10 @@ RUN apt-get install helm
 RUN curl -sL https://dl.yarnpkg.com/debian/pubkey.gpg | gpg --dearmor | tee /usr/share/keyrings/yarnkey.gpg >/dev/null
 RUN echo "deb [signed-by=/usr/share/keyrings/yarnkey.gpg] https://dl.yarnpkg.com/debian stable main" | tee /etc/apt/sources.list.d/yarn.list
 RUN apt-get update && apt-get install yarn
-     
+
+# Install git-lfs, run:
+RUN apt-get update && apt-get install git-lfs
+
 # Azure DevOps Agent Environment Variables
 ENV AGENT_ALLOW_RUNASROOT=1
 ENV AZP_URL=http://domain.company.com.tr:8080/tfs/collection_name/
