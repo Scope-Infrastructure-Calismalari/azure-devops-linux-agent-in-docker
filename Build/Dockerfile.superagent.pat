@@ -1,4 +1,4 @@
-FROM ubuntu:18.04
+FROM ubuntu:20.04
 
 USER root
 
@@ -137,8 +137,21 @@ RUN export PATH=${PATH}:/azp/sonarscanner/sonar-scanner-${SONARSCANNERVERSION}-l
 RUN rm -rf /azp/sonarscanner/sonar-scanner-cli-${SONARSCANNERVERSION}-linux.zip
 
 # Install Docker CLI on Ubuntu
-RUN apt-get update
-RUN apt-get install -y docker.io
+# Add Docker’s official GPG key:
+RUN curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+# Use the following command to set up the stable repository.
+RUN echo \
+    "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \
+    $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
+# Update the apt package index, and install the latest version of Docker Engine and containerd, or go to the next step to install a specific version:
+RUN apt-get update && apt-get install -y docker-ce-cli
+
+# Install buildah
+# https://github.com/containers/buildah/blob/main/install.md
+RUN bash -c "echo 'deb http://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_20.04/ /' > /etc/apt/sources.list.d/devel:kubic:libcontainers:stable.list"
+RUN wget -nv https://download.opensuse.org/repositories/devel:kubic:libcontainers:stable/xUbuntu_20.04/Release.key -O Release.key
+RUN apt-key add - < Release.key
+RUN apt-get update -qq && apt-get -qq -y install buildah
 
 # Install Azure DevOps Required Dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -147,7 +160,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     jq \
     iputils-ping \
     libcurl4 \
-    libicu60 \
     libunwind8 \
     netcat \
     libssl1.0 \
@@ -199,7 +211,7 @@ RUN apt-get autoremove -y && apt-get autoclean -y && apt-get clean -y
 
 # Azure DevOps Agent Starting
 WORKDIR /azp/agent
-COPY ./Build/start.pat.sh .
+COPY ./start.pat.sh .
 RUN chmod +x start.pat.sh
 
 ENTRYPOINT [ "/azp/agent/start.pat.sh" ]
