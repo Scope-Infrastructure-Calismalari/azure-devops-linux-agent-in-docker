@@ -30,6 +30,7 @@ RUN apt-get update \
         expect \
         dos2unix \
         pkg-config
+#        git-lfs
 
 # GCC and CPP Installations
 RUN apt-get install -y --no-install-recommends \
