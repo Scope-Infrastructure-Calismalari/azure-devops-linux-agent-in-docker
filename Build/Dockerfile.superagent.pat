@@ -101,7 +101,7 @@ RUN source $NVM_DIR/nvm.sh \
 
 # add node and npm to path so the commands are available
 ENV NODE_PATH $NVM_DIR/v$NODE_VERSION/lib/node_modules
-ENV PATH $NVM_DIR/versions/node/v$NODE_VERSION/bin:$PATH
+RUN export PATH=${PATH}:$NVM_DIR/versions/node/v$NODE_VERSION/bin
 SHELL ["/bin/sh", "-c"]
 
 # Update before installing JDKs
@@ -208,12 +208,24 @@ RUN if [ "$TARGETARCH" = "amd64" ]; then \
     curl -LsS "$AZP_AGENTPACKAGE_URL" | tar -xz
 RUN ./bin/installdependencies.sh
 
+# Gradle Installation
+ARG GRADLEVERSION=7.5.1
+WORKDIR /opt/gradle
+RUN wget https://services.gradle.org/distributions/gradle-${GRADLEVERSION}-bin.zip
+RUN unzip gradle-${GRADLEVERSION}-bin.zip
+RUN export PATH=${PATH}:/opt/gradle/gradle-${GRADLEVERSION}/bin
+RUN rm -rf /opt/gradle/gradle-${GRADLEVERSION}}-bin.zip
+
 # Last updates and upgrades
 RUN apt-get update && apt-get upgrade
 
 # Cleanup Ubuntu Environment
 RUN rm -rf /var/lib/apt/lists/*
 RUN apt-get autoremove -y && apt-get autoclean -y && apt-get clean -y
+
+# Set globa PATH variable
+ENV PATH=$PATH:$NVM_DIR/versions/node/v$NODE_VERSION/bin:/usr/local/go/bin:/azp/sonarscanner/sonar-scanner-${SONARSCANNERVERSION}-linux/bin:/opt/gradle/gradle-${GRADLEVERSION}/bin
+RUN echo $PATH
 
 # Azure DevOps Agent Starting
 WORKDIR /azp/agent
