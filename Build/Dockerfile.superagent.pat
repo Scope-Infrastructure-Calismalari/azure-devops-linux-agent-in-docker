@@ -82,7 +82,7 @@ RUN export GOPATH=/azp/go/workspace
 ENV GOPATH=/azp/go/workspace
 RUN rm -rf /azp/go/go${GOVERSION}.linux-amd64.tar.gz
 
-# NodeJS 17,16,14,12,10 LTS Installation
+# NodeJS 18,16,14,12,10 LTS Installation
 # Default is 16
 SHELL ["/bin/bash", "--login", "-i", "-c"]
 
@@ -92,6 +92,7 @@ RUN curl --silent -o- https://raw.githubusercontent.com/creationix/nvm/master/in
 
 # install node and npm
 RUN source $NVM_DIR/nvm.sh \
+    && nvm install 18 \
     && nvm install 16 \
     && nvm install 14 \
     && nvm install 12 \
