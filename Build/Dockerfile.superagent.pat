@@ -36,7 +36,10 @@ RUN apt-get update \
         libpango1.0-dev\
         libjpeg-dev\
         libgif-dev\
-        librsvg2-dev
+        librsvg2-dev\
+        libxi-dev\
+        libglew-dev
+        
         
 # Kubectl Installations
 
@@ -63,10 +66,10 @@ RUN apt-get install -y --no-install-recommends \
         python3-dev \
         python3-pip \
         python3-setuptools \
+        python-is-python3\
         virtualenv \
         libssl-dev \
         libffi-dev 
-
 # Python3 Flask Installation
 RUN pip3 install -U pip setuptools wheel
 RUN pip3 install flask 
