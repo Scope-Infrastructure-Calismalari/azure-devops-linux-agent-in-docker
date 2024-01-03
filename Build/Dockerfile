@@ -162,7 +162,7 @@ ENV AZP_WORK=_work
 
 # Azure DevOps Agent Installation
 ARG TARGETARCH=amd64
-ARG AGENT_VERSION=2.181.2
+ARG AGENT_VERSION=3.232.1
 WORKDIR /azp/agent
 RUN if [ "$TARGETARCH" = "amd64" ]; then \
       AZP_AGENTPACKAGE_URL=https://vstsagentpackage.azureedge.net/agent/${AGENT_VERSION}/vsts-agent-linux-x64-${AGENT_VERSION}.tar.gz; \
