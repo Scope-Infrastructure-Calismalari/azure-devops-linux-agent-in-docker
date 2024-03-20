@@ -60,7 +60,10 @@ RUN apt-get install -y --no-install-recommends \
         libcurl4 \
         libunwind8 \
         netcat \
-        libssl1.0 
+        libssl1.0 \
+        tcpdump \
+        socat \
+        iproute2
         
 # Python3 Flask Installation
 RUN pip3 install -U pip setuptools wheel
@@ -128,9 +131,18 @@ RUN echo \
 RUN apt-get update && apt-get install -y docker-ce-cli
 
 # Kubectl Installations
-RUN curl -fsSL https://packages.cloud.google.com/apt/doc/apt-key.gpg | gpg --dearmor -o /usr/share/keyrings/kubernetes-archive-keyring.gpg
-RUN echo "deb [signed-by=/usr/share/keyrings/kubernetes-archive-keyring.gpg] https://apt.kubernetes.io/ kubernetes-xenial main" | tee /etc/apt/sources.list.d/kubernetes.list
-RUN apt-get update && apt-get install -y kubectl=1.25.9-00 && apt-mark hold kubectl
+## RUN curl -fsSL https://packages.cloud.google.com/apt/doc/apt-key.gpg | gpg --dearmor -o /usr/share/keyrings/kubernetes-archive-keyring.gpg
+## RUN echo "deb [signed-by=/usr/share/keyrings/kubernetes-archive-keyring.gpg] https://apt.kubernetes.io/ kubernetes-xenial main" | tee /etc/apt/sources.list.d/kubernetes.list
+
+##RUN curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.26/deb/Release.key | gpg --dearmor -o /usr/share/keyrings/kubernetes-apt-keyring.gpg
+##RUN echo "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.26/deb/ /" | tee /etc/apt/sources.list.d/kubernetes.list
+##RUN apt-get update && apt-get install -y kubectl=1.26.1-00 && apt-mark hold kubectl
+
+RUN curl -LO "https://dl.k8s.io/release/v1.26.14/bin/linux/amd64/kubectl"
+RUN install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+
+
+
 
 RUN curl -LsS https://aka.ms/InstallAzureCLIDeb | bash \
   && rm -rf /var/lib/apt/lists/*
