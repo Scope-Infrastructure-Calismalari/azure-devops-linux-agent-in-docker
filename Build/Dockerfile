@@ -72,8 +72,8 @@ RUN pip3 install -U pip setuptools wheel && pip3 install flask && pip3 install m
 # Default is 16
 SHELL ["/bin/bash", "--login", "-i", "-c"]
 
-ENV NVM_DIR /root/.nvm
-ENV NODE_VERSION 16
+ENV NVM_DIR=/root/.nvm
+ENV NODE_VERSION=16
 RUN curl --silent -o- https://raw.githubusercontent.com/creationix/nvm/master/install.sh | bash
 
 # install node and npm
@@ -87,12 +87,12 @@ RUN source $NVM_DIR/nvm.sh \
     && nvm use default
 
 # add node and npm to path so the commands are available
-ENV NODE_PATH $NVM_DIR/v$NODE_VERSION/lib/node_modules
+ENV NODE_PATH=$NVM_DIR/v$NODE_VERSION/lib/node_modules
 RUN export PATH=${PATH}:$NVM_DIR/versions/node/v$NODE_VERSION/bin
 SHELL ["/bin/sh", "-c"]
 
 # Update before installing JDKs and Java JDK 17 Installation
-RUN apt update && apt upgrade && apt-get install -y --no-install-recommends openjdk-17-jdk openjdk-11-jdk openjdk-8-jdk
+RUN apt update && apt upgrade && apt-get install -y --no-install-recommends openjdk-21-jdk openjdk-17-jdk openjdk-11-jdk openjdk-8-jdk
 
 # Default JAVA_HOME Environment Variable Set
 #RUN export JAVA_HOME=$(readlink -f /usr/bin/javac | sed "s:/bin/javac::")
@@ -198,7 +198,7 @@ RUN rm -rf /var/lib/apt/lists/*
 RUN apt-get autoremove -y && apt-get autoclean -y && apt-get clean -y
 
 # Set globa PATH variable
-ENV PATH=$PATH:$NVM_DIR/versions/node/v$NODE_VERSION/bin:/usr/local/go/bin:/azp/sonarscanner/sonar-scanner-${SONARSCANNERVERSION}-linux/bin:/opt/gradle/gradle-${GRADLEVERSION}/bin
+ENV PATH=$PATH:$NVM_DIR/versions/node/v$NODE_VERSION/bin:/usr/local/go/bin:/azp/sonarscanner/sonar-scanner-${SONARSCANNERVERSION}-linux/bin
 RUN echo $PATH
 
 # Azure DevOps Agent Starting
